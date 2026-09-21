@@ -18,15 +18,18 @@ MOCK_BASE_URL = os.environ["MOCK_LLM_URL"] + "/v1"
 
 _reference_tracer = reference_tracer()
 _reference_meter = reference_meter()
+# Bucket boundaries advised for each metric by docs/gen-ai/gen-ai-metrics.md.
 _workflow_inference_calls = _reference_meter.create_histogram(
     "gen_ai.invoke_workflow.inference_calls",
     unit="{inference_call}",
     description="The number of inference (model) calls made during a single GenAI workflow execution.",
+    explicit_bucket_boundaries_advisory=[0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
 )
 _workflow_tool_calls = _reference_meter.create_histogram(
     "gen_ai.invoke_workflow.tool_calls",
     unit="{tool_call}",
     description="The number of tool calls made during a single GenAI workflow execution.",
+    explicit_bucket_boundaries_advisory=[0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
 )
 
 
