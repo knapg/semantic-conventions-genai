@@ -5,10 +5,11 @@ import os
 import pathlib
 import subprocess
 import sys
+import time
 from typing import Annotated
 
 from opentelemetry import trace
-from reference_shared import flush_and_shutdown, inference_duration_view, setup_otel
+from reference_shared import flush_and_shutdown, inference_duration_view, reference_meter, setup_otel
 
 MOCK_BASE_URL = os.environ["MOCK_LLM_URL"] + "/v1"
 SKILLS_DIR = pathlib.Path(__file__).parent / "skills"
@@ -24,6 +25,19 @@ SKILL_TOOL_ENUMS = {
         "script_name": ["scripts/run_checks.py"],
     },
 }
+
+_reference_meter = reference_meter()
+
+_execute_tool_duration = _reference_meter.create_histogram(
+    "gen_ai.execute_tool.duration",
+    unit="s",
+    description="The duration of a single tool execution.",
+)
+_invoke_agent_tool_calls = _reference_meter.create_histogram(
+    "gen_ai.invoke_agent.tool_calls",
+    unit="{tool_call}",
+    description="The number of tool calls a GenAI agent makes during a single invocation.",
+)
 
 
 async def run_agent_tool_call():
@@ -201,8 +215,9 @@ async def run_skills():
     the model as three tools — `load_skill`, `read_skill_resource` and
     `run_skill_script` — so the framework's own tool loop runs each stage and
     its native `execute_tool` span is where the skill attributes belong. The
-    reference stamps them onto that span from inside the tool call, the same way
-    a framework's own instrumentation would.
+    reference stamps them onto that span from inside the tool call, and records
+    the tool execution's duration over the same call, the same way a framework's
+    own instrumentation would.
     """
     from agent_framework import Agent, SkillsProvider
     from agent_framework.observability import enable_sensitive_telemetry
@@ -211,6 +226,7 @@ async def run_skills():
     print("  [skills] SkillsProvider skill lifecycle (reference implementation)")
 
     enable_sensitive_telemetry(force=True)
+    tool_calls = {"count": 0}
 
     def run_script(skill, script, args=None):
         """Application-supplied runner for file-based skill scripts.
@@ -230,7 +246,7 @@ async def run_skills():
         return completed.stdout.strip()
 
     class _InstrumentedSkillsProvider(SkillsProvider):
-        """Adds `gen_ai.skill.*` to the framework's own `execute_tool` span.
+        """Adds `gen_ai.skill.*` to the framework's tool-execution telemetry.
 
         Overriding `_create_tools` is the provider's own extension point for the
         tool set it hands the model. `stage_tool` narrows that set to one tool
@@ -271,7 +287,21 @@ async def run_skills():
                     elif resource_name:
                         parts = ("execute_tool", tool_name, skill_name, resource_name)
                         span.update_name(" ".join(p for p in parts if p))
-                    return await func(**kwargs)
+                    started = time.perf_counter()
+                    result = await func(**kwargs)
+                    elapsed = time.perf_counter() - started
+                    tool_calls["count"] += 1
+                    attributes = {"gen_ai.tool.name": tool_name, "gen_ai.tool.type": "function"}
+                    if skill is not None:
+                        attributes["gen_ai.skill.name"] = skill_name
+                    if (
+                        tool_name == SkillsProvider.RUN_SKILL_SCRIPT_TOOL_NAME
+                        and skill is not None
+                        and skill.get_script(kwargs["script_name"]) is not None
+                    ):
+                        attributes["gen_ai.skill.resource.name"] = kwargs["script_name"]
+                    _execute_tool_duration.record(elapsed, attributes)
+                    return result
 
                 return wrapper
 
@@ -307,6 +337,7 @@ async def run_skills():
     ]
     for prompt, stage_tool in stages:
         provider.stage_tool = stage_tool
+        tool_calls["count"] = 0
         async with Agent(
             client=OpenAIChatClient(model="gpt-4o-mini", base_url=MOCK_BASE_URL, api_key="mock-key"),
             id="skill-agent",
@@ -317,6 +348,7 @@ async def run_skills():
         ) as agent:
             result = await agent.run(prompt)
             print(f"    -> {result.text[:60]}")
+            _invoke_agent_tool_calls.record(tool_calls["count"], {"gen_ai.agent.name": agent.name})
 
 
 def main():

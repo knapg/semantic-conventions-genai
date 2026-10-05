@@ -63,6 +63,9 @@
     ],
     "gen_ai.invoke_agent.tool_calls": [
       "gen_ai.agent.name"
+    ],
+    "gen_ai.invoke_workflow.duration": [
+      "gen_ai.workflow.name"
     ]
   },
   "findings": [
@@ -151,6 +154,15 @@
     {
       "id": "genai_span_name_format",
       "message": "execute_tool span name should be 'execute_tool' or 'execute_tool <value of gen_ai.tool.name>', got 'execute_tool load_skill ocr-tables'",
+      "context": {
+        "expected_form": "execute_tool or 'execute_tool <gen_ai.tool.name>'",
+        "keyed_attr": "gen_ai.tool.name",
+        "operation": "execute_tool"
+      }
+    },
+    {
+      "id": "genai_span_name_format",
+      "message": "execute_tool span name should be 'execute_tool' or 'execute_tool <value of gen_ai.tool.name>', got 'execute_tool load_skill pdf-processing'",
       "context": {
         "expected_form": "execute_tool or 'execute_tool <gen_ai.tool.name>'",
         "keyed_attr": "gen_ai.tool.name",

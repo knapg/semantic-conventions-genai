@@ -65,6 +65,7 @@ _METRICS = {
     "gen_ai.client.inference.duration": "Client Inference Duration",
     "gen_ai.invoke_agent.inference_calls": "Invoke Agent Inference Calls",
     "gen_ai.invoke_agent.tool_calls": "Invoke Agent Tool Calls",
+    "gen_ai.execute_tool.duration": "Execute Tool Duration",
 }
 
 _ENTITIES = {
