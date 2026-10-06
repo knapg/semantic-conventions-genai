@@ -12,7 +12,7 @@
 
 | Attribute | Supporting Libraries |
 | --- | --- |
-| gen_ai.agent.name | [google-adk] |
+| gen_ai.agent.name | [agent-framework], [google-adk] |
 
 ## Recommended
 

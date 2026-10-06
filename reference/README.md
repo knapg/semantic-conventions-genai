@@ -67,4 +67,5 @@ Run `uv run update-reports` to regenerate.
 | [Invoke Agent Inference Calls](reports/gen-ai-invoke-agent-inference-calls-metric.md) | google-adk |
 | [Invoke Agent Tool Calls](reports/gen-ai-invoke-agent-tool-calls-metric.md) | agent-framework, google-adk |
 | [Execute Tool Duration](reports/gen-ai-execute-tool-duration-metric.md) | agent-framework, google-adk |
+| [Invoke Agent Skill Loads](reports/gen-ai-invoke-agent-skill-loads-metric.md) | agent-framework, google-adk |
 <!-- status:end -->

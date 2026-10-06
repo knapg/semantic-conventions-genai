@@ -66,6 +66,7 @@ _METRICS = {
     "gen_ai.invoke_agent.inference_calls": "Invoke Agent Inference Calls",
     "gen_ai.invoke_agent.tool_calls": "Invoke Agent Tool Calls",
     "gen_ai.execute_tool.duration": "Execute Tool Duration",
+    "gen_ai.invoke_agent.skill_loads": "Invoke Agent Skill Loads",
 }
 
 _ENTITIES = {
