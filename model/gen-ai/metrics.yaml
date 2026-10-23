@@ -293,7 +293,7 @@ metric_refinements:
       - ref: openai.response.system_fingerprint
         requirement_level: recommended
 
-  - id: gen_ai.execute_tool.load_skill
+  - id: gen_ai.execute_tool.load_skill.duration
     ref: gen_ai.execute_tool.duration
     brief: >
       Extension to `gen_ai.execute_tool.duration` for a tool call that loads
