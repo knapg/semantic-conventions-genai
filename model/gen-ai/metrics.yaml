@@ -257,8 +257,6 @@ metrics:
       tool calls within `gen_ai.invoke_agent.tool_calls`, with the same scope.
       It SHOULD include failed and repeated loads.
 
-      This metric SHOULD be emitted together with the
-      `gen_ai.invoke_agent.internal` span for the same invocation.
     instrument: histogram
     unit: "{tool_call}"
     stability: development
