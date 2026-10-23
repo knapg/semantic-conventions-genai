@@ -993,8 +993,16 @@ span_refinements:
       [CLI client span conventions](https://opentelemetry.io/docs/specs/semconv/cli/cli-spans/)
       for each observed command, script, or process execution.
 
-      When the tool reports a single non-zero exit code and no other error,
-      `error.type` SHOULD be set to the string representation of that exit code.
+      When the tool reports a single non-zero exit code and no other error, 
+      `error.type` SHOULD be set to the string representation of that exit code. 
+      
+      Some commands report non-zero exit code that does not imply an error, 
+      for example `grep` returns TBD when no matches were found.
+      Instrumentations MAY use additional context, such as list of popular 
+      command names and their known exit code list, to classify what 
+      results in an error. 
+      
+      Instrumentations SHOULD document how `error.type` is populated.
     stability: development
     attributes:
       - ref: gen_ai.skill.name
