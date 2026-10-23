@@ -64,8 +64,8 @@ Run `uv run update-reports` to regenerate.
 | [Client Inference Operation Output Tokens](reports/gen-ai-client-inference-operation-output-tokens-metric.md) | anthropic, google-genai, openai |
 | [Client Operation Duration](reports/gen-ai-client-operation-duration-metric.md) | adk_a2a |
 | [Client Inference Duration](reports/gen-ai-client-inference-duration-metric.md) | agent-framework, anthropic, groq |
-| [Invoke Agent Inference Calls](reports/gen-ai-invoke-agent-inference-calls-metric.md) | google-adk |
-| [Invoke Agent Tool Calls](reports/gen-ai-invoke-agent-tool-calls-metric.md) | agent-framework, google-adk |
+| [Invoke Agent Inference Calls](reports/gen-ai-invoke-agent-inference-calls-metric.md) | adk_a2a, google-adk |
+| [Invoke Agent Tool Calls](reports/gen-ai-invoke-agent-tool-calls-metric.md) | adk_a2a, agent-framework, google-adk |
 | [Execute Tool Duration](reports/gen-ai-execute-tool-duration-metric.md) | agent-framework, google-adk |
 | [Invoke Agent Skill Loads](reports/gen-ai-invoke-agent-skill-loads-metric.md) | agent-framework, google-adk |
 <!-- status:end -->
