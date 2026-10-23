@@ -864,7 +864,7 @@ See [Agent skills](/docs/gen-ai/gen-ai-agent-spans.md#agent-skills) for how skil
 tool calls are identified. When `gen_ai.execute_tool.duration` is recorded for
 one of them, instrumentations SHOULD apply the matching refinement below.
 
-### Load skill metric
+#### Load skill metric
 
 Applies to the tool calls described by the [load skill span](/docs/gen-ai/gen-ai-agent-spans.md#load-skill-span).
 
