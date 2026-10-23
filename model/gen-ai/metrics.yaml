@@ -254,9 +254,13 @@ metrics:
       single invocation.
     note: |
       Counts the [load skill](/docs/gen-ai/gen-ai-agent-spans.md#load-skill-span)
-      tool calls within `gen_ai.invoke_agent.tool_calls`, with the same scope.
-      It SHOULD include failed and repeated loads.
+      tool calls the agent itself makes, including failed and repeated loads.
+      Loads made by sub-agents or transferred-to agents are recorded against
+      those agents' own invocations.
 
+      It SHOULD be recorded only for invocations of an agent that has at least
+      one skill available, including those that load no skill, so that a value
+      of `0` means the agent had skills but did not load any.
     instrument: histogram
     unit: "{tool_call}"
     stability: development
@@ -294,18 +298,28 @@ metric_refinements:
   - id: gen_ai.execute_tool.load_skill.duration
     ref: gen_ai.execute_tool.duration
     brief: >
-      Extension to `gen_ai.execute_tool.duration` for a tool call that loads
-      a skill into an agent's context.
+      The duration of a tool call that loads a skill into an agent's context.
+    note: |
+      Instrumentations SHOULD record this metric for every load skill tool
+      call they can observe, including failed loads.
+
+      When this metric is reported alongside a `gen_ai.execute_tool` span,
+      the metric value SHOULD be the same as the span duration.
     stability: development
     attributes:
       - ref: gen_ai.skill.name
         requirement_level:
           conditionally_required: If the skill exists and its name is available.
-  - id: gen_ai.execute_tool.read_skill_resource
+  - id: gen_ai.execute_tool.read_skill_resource.duration
     ref: gen_ai.execute_tool.duration
     brief: >
-      Extension to `gen_ai.execute_tool.duration` for a tool call that reads
-      a resource belonging to a skill.
+      The duration of a tool call that reads a resource belonging to a skill.
+    note: |
+      Instrumentations SHOULD record this metric for every read skill resource
+      tool call they can observe, including failed reads.
+
+      When this metric is reported alongside a `gen_ai.execute_tool` span,
+      the metric value SHOULD be the same as the span duration.
     stability: development
     attributes:
       - ref: gen_ai.skill.name
@@ -314,20 +328,16 @@ metric_refinements:
       - ref: gen_ai.skill.resource.name
         requirement_level:
           conditionally_required: If the skill resource exists and its name is available.
-  - id: gen_ai.execute_tool.command
+  - id: gen_ai.execute_tool.command.duration
     ref: gen_ai.execute_tool.duration
     brief: >
-      Extension to `gen_ai.execute_tool.duration` for a tool call that executes
-      one or more commands.
+      The duration of a tool call that executes one or more commands.
     note: |
-      Instrumentation that can reliably bound a single tool call SHOULD
-      record this metric for every tool execution they can observe.
+      Instrumentations SHOULD record this metric for every command execution
+      tool call they can observe, including failed ones.
 
       When this metric is reported alongside a `gen_ai.execute_tool` span,
       the metric value SHOULD be the same as the span duration.
-
-      When the tool reports a single non-zero exit code and no other error,
-      `error.type` SHOULD be set to the string representation of that exit code.
     stability: development
     attributes:
       - ref: gen_ai.skill.name
@@ -336,6 +346,22 @@ metric_refinements:
       - ref: gen_ai.skill.resource.name
         requirement_level:
           conditionally_required: If the command executes an existing skill resource and its name is available.
+      - ref: error.type
+        requirement_level:
+          conditionally_required: If the operation ended in an error.
+        note: |
+          When the tool reports a single non-zero exit code and no other error,
+          `error.type` SHOULD be set to the string representation of that exit
+          code. Otherwise, it SHOULD be the canonical name of the exception that
+          occurred or another low-cardinality error identifier.
+
+          Some commands exit with a non-zero code for outcomes that are not
+          errors. For example, `grep` exits with `1` when no lines match and with
+          `2` when an error occurs. Instrumentations MAY use additional context,
+          such as the known exit codes of common commands, to decide which exit
+          codes are errors.
+
+          Instrumentations SHOULD document how they populate `error.type`.
       - ref: process.exit.code
         requirement_level:
           conditionally_required: If the tool reports a single command or process exit code.
